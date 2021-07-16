@@ -1,6 +1,9 @@
-import React, { useState, useEffect, useRef} from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ToastAndroid } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, Text, View, TouchableWithoutFeedback, ToastAndroid } from 'react-native';
 import { Camera } from 'expo-camera';
+import * as ImageManipulator from 'expo-image-manipulator'
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+
 
 const CameraComponent = (item) => {
   const [hasPermission, setHasPermission] = useState(null);
@@ -23,56 +26,81 @@ const CameraComponent = (item) => {
     return <Text>No access to camera</Text>;
   }
 
-  const sendFrame = async () =>
-  {
-      const data = await camRef.current.takePictureAsync({ quality: 0.1 });
-      //ToastAndroid.show(data.toString(), ToastAndroid.SHORT);
-      let uri = data;
-      let apiUrl = 'api.talkingsigns.cf'
+  const sendFrame = async () => {
+    var img = await camRef.current.takePictureAsync({ quality: 0.1 });
+    ToastAndroid.show(img.uri, ToastAndroid.SHORT);
 
-      let name = item.navigation.state.params.name
-    let id = item.navigation.state.params._id
-    let uriParts = uri.split('.');
-    let fileType = uriParts[uriParts.length - 1];
+    const width = img.width;
+    const height = img.height;
+    console.log(img.width, img.height)
+    manipResult = await ImageManipulator.manipulateAsync(
+      img.uri,
+      [{
+        crop: {
+          originX: 0,
+          originY: (height - width) / 2,
+          width: width,
+          height: width
+        }
+      }],
+      { format: 'jpeg' }
+    );
+    img = manipResult
+    console.log(img);
 
-    let formData = new FormData();
+    try {
+      let uri = img.uri;
+      let apiUrl = 'https://api.talkingsigns.cf/uploader';
 
-    formData.append('photo', {
-      uri,
-      name: `photo.${fileType}`,
-      type: `image/${fileType}`,
-    });
+      let formData = new FormData();
 
-    let options = {
-      method: 'POST',
-      body: formData,
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'multipart/form-data',
-        name,
-        id
+      formData.append('file', {
+        uri,
+        name: `photo.jpeg`,
+        type: `image/jpeg`,
+      });
 
-      },
-    };
+      let options = {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'multipart/form-data'
+        },
+      };
 
-    setWait(true)
-    let result = await fetch(apiUrl, options);
-    console.log(result.status)
-    setWait(false)
-    setOpen(false)
-
+      setWait(true)
+      let result = await fetch(apiUrl, options);
+      console.log(JSON.stringify(result));
+      setWait(false)
+      setOpen(false)
+    }
+    catch (e) {
+      console.log(e)
+      ToastAndroid.show("image was not sent", ToastAndroid.SHORT);
+    }
   }
-
-  setInterval(sendFrame, 1000);
 
   return (
     <View style={styles.container}>
       <Camera style={styles.camera} type={type}
-        ref = {camRef}
-        >
+        ref={camRef}
+      >
+        <View
+          pointerEvents={"none"}
+          style={{
+            borderWidth: 4,
+            borderColor: 'yellow',
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            width: 200,
+            height: 350
+          }} />
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.button}
+
+          <TouchableWithoutFeedback
+            style={styles.switch}
             onPress={() => {
               setType(
                 type === Camera.Constants.Type.back
@@ -80,10 +108,29 @@ const CameraComponent = (item) => {
                   : Camera.Constants.Type.back
               );
             }}>
-            <Text style={styles.text}> Flip </Text>
-          </TouchableOpacity>
+
+            <MaterialCommunityIcons
+              style={styles.switch}
+              name="camera-switch"
+              color={"#9c1937"}
+              size={30}
+            />
+
+          </TouchableWithoutFeedback>
+
+          <TouchableWithoutFeedback style={styles.snap}
+            onPress={() => { sendFrame() }}
+          >
+            <MaterialCommunityIcons
+              style={styles.snap}
+              name="circle"
+              color={"#9c1937"}
+              size={50}
+            />
+          </TouchableWithoutFeedback>
+
         </View>
-        </Camera>
+      </Camera>
     </View>
   );
 }
@@ -98,13 +145,18 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flex: 1,
     backgroundColor: "transparent",
-    flexDirection: "row",
-    margin: 20,
+    margin: 0,
+    alignSelf: "stretch",
   },
-  button: {
-    flex: 0.1,
-    alignSelf: "flex-end",
-    alignItems: "center",
+  switch: {
+    position: "absolute",
+    left: 10,
+    bottom: 10,
+  },
+  snap: {
+    position: "absolute",
+    bottom: 10,
+    alignSelf: "center",
   },
   text: {
     fontSize: 18,
