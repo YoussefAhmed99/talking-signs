@@ -29,11 +29,11 @@ const CameraComponent = (props) => {
 
   const sendFrame = async () => {
     var img = await camRef.current.takePictureAsync({ quality: 0.1 });
-    ToastAndroid.show(img.uri, ToastAndroid.SHORT);
+    //ToastAndroid.show(img.uri, ToastAndroid.SHORT);
 
     const width = img.width;
     const height = img.height;
-    console.log(img.width, img.height)
+    //console.log(img.width, img.height)
     manipResult = await ImageManipulator.manipulateAsync(
       img.uri,
       [{
@@ -47,7 +47,7 @@ const CameraComponent = (props) => {
       { format: 'jpeg' }
     );
     img = manipResult
-    console.log(img);
+    //console.log(img);
 
     try {
       let uri = img.uri;
@@ -67,10 +67,10 @@ const CameraComponent = (props) => {
           'Content-Type': 'multipart/form-data'
         }
       })
-
+      ToastAndroid.show("Processing data", ToastAndroid.SHORT);
       props.onSubmit(result.data);
 
-      ToastAndroid.show(result.data, ToastAndroid.SHORT);
+      //ToastAndroid.show(result.data, ToastAndroid.SHORT);
     }
     catch (e) {
       console.log(e)

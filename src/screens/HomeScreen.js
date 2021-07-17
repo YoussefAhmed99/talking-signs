@@ -5,7 +5,7 @@ import ResetTextAreaButton from "../components/ResetTextAreaButton";
 
 const HomeScreen = (props) => {
   const [result, setResult] = useState("");
-  console.log(props);
+  //console.log(props);
   const handleText = (data) => {
     if (data === 'nothing') {
 
@@ -20,7 +20,7 @@ const HomeScreen = (props) => {
 
   const resetHandler = () => {
     setResult("");
-    console.log("X");
+    //console.log("X");
   }
   return (
     <View style={{ flex: 1 }}>
