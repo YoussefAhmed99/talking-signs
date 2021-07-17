@@ -3,14 +3,15 @@ import { StyleSheet, Text, View, TouchableWithoutFeedback, ToastAndroid } from '
 import { Camera } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator'
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import axios from 'axios'
 
 
-const CameraComponent = (item) => {
+const CameraComponent = () => {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const camRef = useRef(null);
-  const [open, setOpen] = useState(false);
-  const [wait, setWait] = useState(false);
+  const width_proportion = '50%';
+  const height_proportion = '67%';
 
   useEffect(() => {
     (async () => {
@@ -37,10 +38,10 @@ const CameraComponent = (item) => {
       img.uri,
       [{
         crop: {
-          originX: 0,
-          originY: (height - width) / 2,
-          width: width,
-          height: width
+          originX: width / 2,
+          originY: 0,
+          width: width / 2,
+          height: height * 0.67
         }
       }],
       { format: 'jpeg' }
@@ -60,20 +61,13 @@ const CameraComponent = (item) => {
         type: `image/jpeg`,
       });
 
-      let options = {
-        method: 'POST',
-        body: formData,
+      let result = await axios.post(apiUrl, formData, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'multipart/form-data'
-        },
-      };
-
-      setWait(true)
-      let result = await fetch(apiUrl, options);
-      console.log(JSON.stringify(result));
-      setWait(false)
-      setOpen(false)
+        }
+      })
+      console.log(result.data);
     }
     catch (e) {
       console.log(e)
@@ -94,8 +88,8 @@ const CameraComponent = (item) => {
             position: 'absolute',
             right: 0,
             top: 0,
-            width: 200,
-            height: 350
+            width: width_proportion,
+            height: height_proportion
           }} />
         <View style={styles.buttonContainer}>
 
