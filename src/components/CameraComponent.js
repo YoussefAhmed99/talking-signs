@@ -6,7 +6,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import axios from 'axios'
 
 
-const CameraComponent = () => {
+const CameraComponent = (props) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const camRef = useRef(null);
@@ -67,7 +67,10 @@ const CameraComponent = () => {
           'Content-Type': 'multipart/form-data'
         }
       })
-      console.log(result.data);
+
+      props.onSubmit(result.data);
+
+      ToastAndroid.show(result.data, ToastAndroid.SHORT);
     }
     catch (e) {
       console.log(e)
