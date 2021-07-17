@@ -1,17 +1,21 @@
 import React from "react";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableWithoutFeedback } from "react-native";
 
-const ResetTextAreaButton = () => {
+const ResetTextAreaButton = (props) => {
+  const reset = () => {
+    props.onReset();
+  }
+
   return (
-    <TouchableOpacity>
+    <TouchableWithoutFeedback onPress={reset}>
       <MaterialCommunityIcons
         style={styles.button}
         name="refresh"
         color={"#9c1937"}
         size={30}
       />
-    </TouchableOpacity>
+    </TouchableWithoutFeedback>
   );
 };
 export default ResetTextAreaButton;
