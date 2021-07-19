@@ -11,9 +11,12 @@ const HomeScreen = (props) => {
 
     } else if (data === 'del') {
       var deleted = "";
-      deleted = result.slice(result.length - 1);
+      deleted = result.slice(result.length - 2);
       setResult(deleted);
-    } else {
+    } else if (data === 'space') {
+      setResult(result + " ");
+    }
+    else {
       setResult(result + data);
     }
   }

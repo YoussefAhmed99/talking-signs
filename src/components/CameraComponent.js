@@ -9,9 +9,11 @@ import axios from 'axios'
 const CameraComponent = (props) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
+  const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
   const camRef = useRef(null);
   const width_proportion = '50%';
   const height_proportion = '67%';
+  var square = 300;
 
   useEffect(() => {
     (async () => {
@@ -28,28 +30,46 @@ const CameraComponent = (props) => {
   }
 
   const sendFrame = async () => {
-    var img = await camRef.current.takePictureAsync({ quality: 0.1 });
+    Camera.Constants.FlashMode = 'on';
+    var img = await camRef.current.takePictureAsync({ quality: 1 });
     //ToastAndroid.show(img.uri, ToastAndroid.SHORT);
 
-    const width = img.width;
-    const height = img.height;
+    let width = img.width;
+    square = width * 0.67
     //console.log(img.width, img.height)
-    manipResult = await ImageManipulator.manipulateAsync(
-      img.uri,
-      [{
-        crop: {
-          originX: width / 2,
-          originY: 0,
-          width: width / 2,
-          height: height * 0.67
-        }
-      }],
-      { format: 'jpeg' }
-    );
+    //console.log(type);
+    if (type === 0) {
+      var manipResult = await ImageManipulator.manipulateAsync(
+        img.uri,
+        [{
+          crop: {
+            originX: width * 0.33,
+            originY: 0,
+            width: width * 0.67,
+            height: width * 0.67
+          }
+        }]//,
+        //{ format: 'png' }
+      );
+    } else if (type === 1) {
+      manipResult = await ImageManipulator.manipulateAsync(
+        img.uri,
+        [{
+          crop: {
+            originX: 0,
+            originY: 0,
+            width: width * 0.67,
+            height: width * 0.67
+          }
+        }]//,
+        //{ format: 'png' }
+      );
+    }
     img = manipResult
     //console.log(img);
 
     try {
+      ToastAndroid.show("Processing data", ToastAndroid.SHORT);
       let uri = img.uri;
       let apiUrl = 'https://api.talkingsigns.cf/uploader';
 
@@ -57,8 +77,8 @@ const CameraComponent = (props) => {
 
       formData.append('file', {
         uri,
-        name: `photo.jpeg`,
-        type: `image/jpeg`,
+        name: `photo.jpg`,
+        type: `image/jpg`,
       });
 
       let result = await axios.post(apiUrl, formData, {
@@ -67,10 +87,9 @@ const CameraComponent = (props) => {
           'Content-Type': 'multipart/form-data'
         }
       })
-      ToastAndroid.show("Processing data", ToastAndroid.SHORT);
       props.onSubmit(result.data);
 
-      //ToastAndroid.show(result.data, ToastAndroid.SHORT);
+      ToastAndroid.show("Api response: " + result.data, ToastAndroid.SHORT);
     }
     catch (e) {
       console.log(e)
@@ -91,8 +110,8 @@ const CameraComponent = (props) => {
             position: 'absolute',
             right: 0,
             top: 0,
-            width: width_proportion,
-            height: height_proportion
+            width: square,
+            height: square
           }} />
         <View style={styles.buttonContainer}>
 
@@ -126,6 +145,21 @@ const CameraComponent = (props) => {
             />
           </TouchableWithoutFeedback>
 
+          <TouchableWithoutFeedback style={styles.flash}
+            onPress={() => {
+              setFlash(
+                flash === Camera.Constants.FlashMode.off
+                  ? Camera.Constants.FlashMode.torch
+                  : Camera.Constants.FlashMode.off);
+            }}>
+            <MaterialCommunityIcons
+              style={styles.flash}
+              name="flash"
+              color={"#9c1937"}
+              size={50}
+            />
+          </TouchableWithoutFeedback>
+
         </View>
       </Camera>
     </View>
@@ -154,6 +188,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 10,
     alignSelf: "center",
+  },
+  flash: {
+    position: "absolute",
+    right: 10,
+    bottom: 10,
   },
   text: {
     fontSize: 18,
