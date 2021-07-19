@@ -42,8 +42,8 @@ const CameraComponent = (props) => {
             width: Math.floor(square),
             height: Math.floor(square)
           }
-        }]//,
-        //{ format: 'png' }
+        }],
+        { resize: { width: 200, height: 200 } }
       );
     } else if (type === 1) {
       manipResult = await ImageManipulator.manipulateAsync(
@@ -55,8 +55,8 @@ const CameraComponent = (props) => {
             width: Math.floor(square),
             height: Math.floor(square)
           }
-        }]//,
-        //{ format: 'png' }
+        }],
+        { resize: { width: 200, height: 200 } }
       );
     }
     img = manipResult
