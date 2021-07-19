@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableWithoutFeedback, ToastAndroid } from 'react-native';
+import { StyleSheet, Text, View, TouchableWithoutFeedback, ToastAndroid, Dimensions } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator'
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -9,11 +9,8 @@ import axios from 'axios'
 const CameraComponent = (props) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
-  const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
   const camRef = useRef(null);
-  const width_proportion = '50%';
-  const height_proportion = '67%';
-  var square = 300;
+  const frameSquare = Dimensions.get('window').width * 0.67;
 
   useEffect(() => {
     (async () => {
@@ -30,23 +27,20 @@ const CameraComponent = (props) => {
   }
 
   const sendFrame = async () => {
-    Camera.Constants.FlashMode = 'on';
     var img = await camRef.current.takePictureAsync({ quality: 1 });
     //ToastAndroid.show(img.uri, ToastAndroid.SHORT);
-
-    let width = img.width;
-    square = width * 0.67
-    //console.log(img.width, img.height)
-    //console.log(type);
+    var width = img.width;
+    var square = width * 0.67;
+    console.log(type, Camera.Constants.Type);
     if (type === 0) {
       var manipResult = await ImageManipulator.manipulateAsync(
         img.uri,
         [{
           crop: {
-            originX: width * 0.33,
+            originX: Math.floor(width * 0.33),
             originY: 0,
-            width: width * 0.67,
-            height: width * 0.67
+            width: Math.floor(square),
+            height: Math.floor(square)
           }
         }]//,
         //{ format: 'png' }
@@ -58,8 +52,8 @@ const CameraComponent = (props) => {
           crop: {
             originX: 0,
             originY: 0,
-            width: width * 0.67,
-            height: width * 0.67
+            width: Math.floor(square),
+            height: Math.floor(square)
           }
         }]//,
         //{ format: 'png' }
@@ -110,8 +104,8 @@ const CameraComponent = (props) => {
             position: 'absolute',
             right: 0,
             top: 0,
-            width: square,
-            height: square
+            width: frameSquare,
+            height: frameSquare
           }} />
         <View style={styles.buttonContainer}>
 
@@ -144,22 +138,6 @@ const CameraComponent = (props) => {
               size={50}
             />
           </TouchableWithoutFeedback>
-
-          <TouchableWithoutFeedback style={styles.flash}
-            onPress={() => {
-              setFlash(
-                flash === Camera.Constants.FlashMode.off
-                  ? Camera.Constants.FlashMode.torch
-                  : Camera.Constants.FlashMode.off);
-            }}>
-            <MaterialCommunityIcons
-              style={styles.flash}
-              name="flash"
-              color={"#9c1937"}
-              size={50}
-            />
-          </TouchableWithoutFeedback>
-
         </View>
       </Camera>
     </View>
@@ -188,11 +166,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 10,
     alignSelf: "center",
-  },
-  flash: {
-    position: "absolute",
-    right: 10,
-    bottom: 10,
   },
   text: {
     fontSize: 18,
