@@ -18,7 +18,7 @@ const HomeStackScreen = () => (
       name="Home"
       component={HomeScreen}
       options={{
-        title: "Start Translation",
+        title: "Talking signs",
         headerStyle: {
           backgroundColor: "#9c1937",
         },

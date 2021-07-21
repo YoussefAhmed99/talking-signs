@@ -1,6 +1,6 @@
 import React from "react";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { View, StyleSheet, TouchableWithoutFeedback } from "react-native";
+import { StyleSheet, TouchableWithoutFeedback } from "react-native";
 
 const ResetTextAreaButton = (props) => {
   const reset = () => {
@@ -22,8 +22,7 @@ export default ResetTextAreaButton;
 
 const styles = StyleSheet.create({
   button: {
-    alignSelf: "flex-end",
-    top: 5,
+    bottom: 5,
     right: 5,
     position: "absolute",
   },

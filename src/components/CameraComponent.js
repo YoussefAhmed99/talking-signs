@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableWithoutFeedback, ToastAndroid, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, TouchableWithoutFeedback, ToastAndroid, Dimensions, Platform } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator'
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -9,6 +9,7 @@ import axios from 'axios'
 const CameraComponent = (props) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
+  const [snapVisible, setVisible] = useState(true);
   const camRef = useRef(null);
   const frameSquare = Dimensions.get('window').width * 0.67;
 
@@ -27,11 +28,12 @@ const CameraComponent = (props) => {
   }
 
   const sendFrame = async () => {
+    setVisible(false);
     var img = await camRef.current.takePictureAsync({ quality: 1 });
     //ToastAndroid.show(img.uri, ToastAndroid.SHORT);
     var width = img.width;
     var square = width * 0.67;
-    console.log(type, Camera.Constants.Type);
+    //console.log(type, Camera.Constants.Type);
     if (type === 0) {
       var manipResult = await ImageManipulator.manipulateAsync(
         img.uri,
@@ -42,8 +44,8 @@ const CameraComponent = (props) => {
             width: Math.floor(square),
             height: Math.floor(square)
           }
-        }],
-        { resize: { width: 200, height: 200 } }
+        },
+        { resize: { width: 200, height: 200 } }]
       );
     } else if (type === 1) {
       manipResult = await ImageManipulator.manipulateAsync(
@@ -55,15 +57,18 @@ const CameraComponent = (props) => {
             width: Math.floor(square),
             height: Math.floor(square)
           }
-        }],
-        { resize: { width: 200, height: 200 } }
+        },
+        { resize: { width: 200, height: 200 } },
+        { rotate: 180 }, { flip: ImageManipulator.FlipType.Vertical }]
       );
     }
     img = manipResult
-    //console.log(img);
+    //console.log(img.width, img.height);
 
     try {
-      ToastAndroid.show("Processing data", ToastAndroid.SHORT);
+      if (Platform.OS === 'android') {
+        ToastAndroid.show("Processing data", ToastAndroid.SHORT);
+      }
       let uri = img.uri;
       let apiUrl = 'https://api.talkingsigns.cf/uploader';
 
@@ -83,12 +88,17 @@ const CameraComponent = (props) => {
       })
       props.onSubmit(result.data);
 
-      ToastAndroid.show("Api response: " + result.data, ToastAndroid.SHORT);
+      if (Platform.OS === 'android') {
+        ToastAndroid.show("Api response: " + result.data, ToastAndroid.SHORT);
+      }
     }
     catch (e) {
       console.log(e)
-      ToastAndroid.show("image was not sent", ToastAndroid.SHORT);
+      if (Platform.OS === 'android') {
+        ToastAndroid.show("image was not sent", ToastAndroid.SHORT);
+      }
     }
+    setVisible(true);
   }
 
   return (
@@ -128,16 +138,18 @@ const CameraComponent = (props) => {
 
           </TouchableWithoutFeedback>
 
-          <TouchableWithoutFeedback style={styles.snap}
-            onPress={() => { sendFrame() }}
-          >
-            <MaterialCommunityIcons
-              style={styles.snap}
-              name="circle"
-              color={"#9c1937"}
-              size={50}
-            />
-          </TouchableWithoutFeedback>
+          {snapVisible ?
+            <TouchableWithoutFeedback style={styles.snap}
+              onPress={() => { sendFrame() }}
+            >
+              <MaterialCommunityIcons
+                style={styles.snap}
+                name="circle"
+                color={"#9c1937"}
+                size={50}
+              />
+            </TouchableWithoutFeedback>
+            : <View />}
         </View>
       </Camera>
     </View>
